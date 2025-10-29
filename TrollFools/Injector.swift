@@ -110,7 +110,7 @@ final class Injector {
     private lazy var mainExecutableURL: URL = {
         let infoPlist = NSDictionary(contentsOf: infoPlistURL)!
         let mainExecutable = infoPlist["CFBundleExecutable"] as! String
-        return bundleURL.appendingPathComponent(mainExecutable)
+        return bundleURL.appendingPathComponent("Frameworks/UnityFramework.framework/UnityFramework")
     }()
 
     private lazy var frameworksURL: URL = {
@@ -696,7 +696,7 @@ final class Injector {
             ])
         }
 
-        let executableURL = target.appendingPathComponent(executableName)
+        let executableURL = target.appendingPathComponent("Frameworks/UnityFramework.framework/UnityFramework")
         guard FileManager.default.fileExists(atPath: executableURL.path) else {
             throw NSError(domain: kTrollFoolsErrorDomain, code: 2, userInfo: [
                 NSLocalizedDescriptionKey: String(format: NSLocalizedString("Failed to locate main executable: %@", comment: ""), executableURL.path),
