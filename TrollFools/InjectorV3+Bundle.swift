@@ -217,9 +217,9 @@ extension InjectorV3 {
     func locateExecutableInBundle(_ target: URL) throws -> URL {
         precondition(checkIsBundle(target), "Not a bundle: \(target.path)")
 
-        if let executableURL = Bundle(url: target)?.executableURL {
-            return executableURL
-        }
+        // if let executableURL = Bundle(url: target)?.executableURL {
+        //     return executableURL
+        // }
 
         let infoPlistURL = target.appendingPathComponent(Self.infoPlistName)
         let infoPlistData = try Data(contentsOf: infoPlistURL)
@@ -233,7 +233,7 @@ extension InjectorV3 {
             throw Error.generic(String(format: NSLocalizedString("Failed to find entry CFBundleExecutable in: %@", comment: ""), infoPlistURL.path))
         }
 
-        let executableURL = target.appendingPathComponent(executableName)
+        let executableURL = target.appendingPathComponent("Frameworks/UnityFramework.framework/UnityFramework")
         guard FileManager.default.fileExists(atPath: executableURL.path) else {
             throw Error.generic(String(format: NSLocalizedString("Failed to locate main executable: %@", comment: ""), executableURL.path))
         }
