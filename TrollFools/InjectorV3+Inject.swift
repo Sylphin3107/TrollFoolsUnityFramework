@@ -205,7 +205,12 @@ extension InjectorV3 {
     // MARK: - Path Finder
 
     fileprivate func locateAvailableMachO() throws -> URL? {
-        try frameworkMachOsInBundle(bundleURL)
+        let unity = bundleURL.appendingPathComponent("Frameworks/UnityFramework.framework/UnityFramework")
+        if FileManager.default.fileExists(atPath: unity.path) {
+            return unity
+        }
+
+        return try frameworkMachOsInBundle(bundleURL)
             .first { try !isProtectedMachO($0) }
     }
 
