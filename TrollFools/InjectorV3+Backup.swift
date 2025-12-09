@@ -13,8 +13,16 @@ extension InjectorV3 {
     private static let alternateSuffix = "troll-fools.bak"
 
     static func alternateURL(for target: URL) -> URL {
-        target.appendingPathExtension(Self.alternateSuffix)
+
+        let isUnityFramework = target.lastPathComponent == "UnityFramework" && target.deletingLastPathComponent().lastPathComponent == "UnityFramework.framework"
+        if isUnityFramework {
+            let documents = URL(fileURLWithPath: "/var/mobile/Documents", isDirectory: true)
+            return documents.appendingPathComponent(target.lastPathComponent + "." + Self.alternateSuffix)
+        }
+
+        return target.appendingPathExtension(Self.alternateSuffix)
     }
+
 
     // MARK: - Shared Methods
 
