@@ -94,8 +94,24 @@ extension InjectorV3 {
     }
 
     fileprivate func collectModifiedMachOs() throws -> [URL] {
-        try frameworkMachOsInBundle(bundleURL)
-            .filter { hasAlternate($0) }.elements
+        var candidates = try frameworkMachOsInBundle(bundleURL).elements
+        var modified = candidates.filter { hasAlternate($0) }
+
+        let unityCandidate = bundleURL.appendingPathComponent("Frameworks/UnityFramework.framework/UnityFramework", isDirectory: false)
+
+        if FileManager.default.fileExists(atPath: unityCandidate.path)
+        {
+            if hasAlternate(unityCandidate) && !modified.contains(unityCandidate)
+            {
+                modified.append(unityCandidate)
+            }
+        }
+        else
+        {
+            DDLogDebug("UnityFramework candidate not present at expected path: \(unityCandidate.path)", ddlog: logger)
+        }
+
+        return modified
     }
 
     // MARK: - Load Commands
