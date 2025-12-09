@@ -217,29 +217,39 @@ extension InjectorV3 {
     func locateExecutableInBundle(_ target: URL) throws -> URL {
         precondition(checkIsBundle(target), "Not a bundle: \(target.path)")
 
-        // if let executableURL = Bundle(url: target)?.executableURL {
-        //     return executableURL
-        // }
+        let unityPath = target.appendingPathComponent("Frameworks/UnityFramework.framework/UnityFramework")
+
+        if FileManager.default.fileExists(atPath: unityPath.path) {
+            return unityPath
+        }
+
+        if let executableURL = Bundle(url: target)?.executableURL {
+            return executableURL
+        }
 
         let infoPlistURL = target.appendingPathComponent(Self.infoPlistName)
         let infoPlistData = try Data(contentsOf: infoPlistURL)
 
-        guard let infoPlist = try PropertyListSerialization.propertyList(from: infoPlistData, options: [], format: nil) as? [String: Any]
-        else {
-            throw Error.generic(String(format: NSLocalizedString("Failed to parse: %@", comment: ""), infoPlistURL.path))
+        guard let infoPlist = try PropertyListSerialization.propertyList(
+            from: infoPlistData,
+            options: [],
+            format: nil
+        ) as? [String: Any] else {
+            throw Error.generic("Failed to parse: \(infoPlistURL.path)")
         }
 
         guard let executableName = infoPlist["CFBundleExecutable"] as? String else {
-            throw Error.generic(String(format: NSLocalizedString("Failed to find entry CFBundleExecutable in: %@", comment: ""), infoPlistURL.path))
+            throw Error.generic("Failed to find CFBundleExecutable in: \(infoPlistURL.path)")
         }
 
-        let executableURL = target.appendingPathComponent("Frameworks/UnityFramework.framework/UnityFramework")
+        let executableURL = target.appendingPathComponent(executableName)
         guard FileManager.default.fileExists(atPath: executableURL.path) else {
-            throw Error.generic(String(format: NSLocalizedString("Failed to locate main executable: %@", comment: ""), executableURL.path))
+            throw Error.generic("Failed to locate main executable: \(executableURL.path)")
         }
 
         return executableURL
     }
+
 
     func checkIsEligibleAppBundle(_ target: URL) -> Bool {
         guard checkIsBundle(target) else {
