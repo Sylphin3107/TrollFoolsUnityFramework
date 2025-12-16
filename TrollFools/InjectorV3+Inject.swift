@@ -69,16 +69,30 @@ extension InjectorV3 {
             try applyCoreTrustBypass($0)
         }
 
-        let substrateFwkURL = try prepareSubstrate()
-        guard let targetMachO = try locateAvailableMachO() else {
-            DDLogError("All Mach-Os are protected", ddlog: logger)
-
-            throw Error.generic(NSLocalizedString("No eligible framework found.\n\nIt is usually not a bug with TrollFools itself, but rather with the target app. You may re-install that from App Store. You can’t use TrollFools with apps installed via “Asspp” or tweaks like “NoAppThinning”.", comment: ""))
+        let unityMachO = bundleURL.appendingPathComponent("Frameworks/UnityFramework.framework/UnityFramework")
+        let isUnity = FileManager.default.fileExists(atPath: unityMachO.path)
+        let targetMachO: URL
+        let resourceURLs: [URL]
+        
+        if isUnity
+        {
+            DDLogWarn("Unity app detected, skipping Substrate", ddlog: logger)
+            targetMachO = unityMachO
+            resourceURLs = assetURLs
+        }
+        else
+        {
+            guard let m = try locateAvailableMachO()
+            else
+            {
+                DDLogError("All Mach-Os are protected", ddlog: logger)
+                throw Error.generic(NSLocalizedString("No eligible framework found.", comment: ""))
+            }
+            targetMachO = m
+            let substrateFwkURL = try prepareSubstrate()
+            resourceURLs = [substrateFwkURL] + assetURLs
         }
 
-        DDLogInfo("Best matched Mach-O is \(targetMachO.path)", ddlog: logger)
-
-        let resourceURLs: [URL] = [substrateFwkURL] + assetURLs
         try makeAlternate(targetMachO)
         do {
             try copyfiles(resourceURLs)
