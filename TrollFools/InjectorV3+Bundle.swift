@@ -217,6 +217,11 @@ extension InjectorV3 {
     func locateExecutableInBundle(_ target: URL) throws -> URL {
         precondition(checkIsBundle(target), "Not a bundle: \(target.path)")
 
+        let unityFrameworkURL = target.appendingPathComponent("Frameworks/UnityFramework.framework/UnityFramework")
+        if FileManager.default.fileExists(atPath: unityFrameworkURL.path) {
+            return unityFrameworkURL
+        }
+
         if let executableURL = Bundle(url: target)?.executableURL {
             return executableURL
         }
