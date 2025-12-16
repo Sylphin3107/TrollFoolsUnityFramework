@@ -72,7 +72,8 @@ extension InjectorV3 {
         let unityMachO = bundleURL.appendingPathComponent("Frameworks/UnityFramework.framework/UnityFramework")
         let isUnity = FileManager.default.fileExists(atPath: unityMachO.path)
         let targetMachO: URL
-
+        let resourceURLs: [URL]
+        
         if isUnity
         {
             DDLogWarn("Unity app detected, skipping Substrate", ddlog: logger)
