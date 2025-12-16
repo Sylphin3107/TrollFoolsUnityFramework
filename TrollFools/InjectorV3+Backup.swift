@@ -14,15 +14,14 @@ extension InjectorV3 {
 
     static func alternateURL(for target: URL) -> URL {
 
-        let isUnityFramework = target.lastPathComponent == "UnityFramework" && target.deletingLastPathComponent().lastPathComponent == "UnityFramework.framework"
-        if isUnityFramework {
+        let unityFrameworkURL = target.appendingPathComponent("Frameworks/UnityFramework.framework/UnityFramework")
+        if FileManager.default.fileExists(atPath: unityFrameworkURL.path) {
             let documents = URL(fileURLWithPath: "/var/mobile/Documents", isDirectory: true)
-            return documents.appendingPathComponent(target.lastPathComponent + "." + Self.alternateSuffix)
+            return documents.appendingPathComponent(target.lastPathComponent).appendingPathExtension(Self.alternateSuffix)
         }
 
         return target.appendingPathExtension(Self.alternateSuffix)
     }
-
 
     // MARK: - Shared Methods
 
