@@ -69,25 +69,25 @@ extension InjectorV3 {
             try applyCoreTrustBypass($0)
         }
 
-        let targetMachO = try locateAvailableMachO()
-        guard let targetMachO else {
-            DDLogError("All Mach-Os are protected", ddlog: logger)
-            throw Error.generic(NSLocalizedString("No eligible framework found.", comment: ""))
-        }
-
-        let isUnity = (targetMachO.lastPathComponent == "UnityFramework" && targetMachO.deletingLastPathComponent().lastPathComponent == "UnityFramework.framework")
-
-        DDLogInfo("Best matched Mach-O is \(targetMachO.path)", ddlog: logger)
-
-        let resourceURLs: [URL]
+        let unityMachO = bundleURL.appendingPathComponent("Frameworks/UnityFramework.framework/UnityFramework")
+        let isUnity = FileManager.default.fileExists(atPath: unityMachO.path)
+        let targetMachO: URL
 
         if isUnity
         {
-            DDLogWarn("Skipping CydiaSubstrate injection for UnityFramework", ddlog: logger)
-            resourceURLs = assetURLs       // no substrate
+            DDLogWarn("Unity app detected, skipping Substrate", ddlog: logger)
+            targetMachO = unityMachO
+            resourceURLs = assetURLs
         }
         else
         {
+            guard let m = try locateAvailableMachO()
+            else
+            {
+                DDLogError("All Mach-Os are protected", ddlog: logger)
+                throw Error.generic(NSLocalizedString("No eligible framework found.", comment: ""))
+            }
+            targetMachO = m
             let substrateFwkURL = try prepareSubstrate()
             resourceURLs = [substrateFwkURL] + assetURLs
         }
@@ -218,12 +218,7 @@ extension InjectorV3 {
     // MARK: - Path Finder
 
     fileprivate func locateAvailableMachO() throws -> URL? {
-        let unity = bundleURL.appendingPathComponent("Frameworks/UnityFramework.framework/UnityFramework")
-        if FileManager.default.fileExists(atPath: unity.path) {
-            return unity
-        }
-
-        return try frameworkMachOsInBundle(bundleURL)
+        try frameworkMachOsInBundle(bundleURL)
             .first { try !isProtectedMachO($0) }
     }
 
